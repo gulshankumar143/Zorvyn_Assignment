@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API documentation for the Finance Backend
 servers:
-  - url: http://localhost:3000
+  - url: https://finance-data-processing-11cy.onrender.com
 paths:
   /users/login:
     post:
