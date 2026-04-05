@@ -11,10 +11,11 @@ app.use(express.json());
 const loginRouter = Router();
 loginRouter.post('/login', async (req, res, next) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Missing credentials' });
+    const { username, email, password } = req.body;
+    const loginId = username || email;
+    if (!loginId || !password) return res.status(400).json({ error: 'Missing credentials' });
     const db = await import('../db.js').then(m => m.getDb());
-    const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    const user = await db.get('SELECT * FROM users WHERE username = ?', [loginId]);
     if (!user || user.password !== password) return res.status(401).json({ error: 'Invalid credentials' });
     if (user.status !== 'active') return res.status(403).json({ error: 'User inactive' });
     const jwt = await import('jsonwebtoken');
@@ -28,12 +29,12 @@ loginRouter.post('/login', async (req, res, next) => {
     res.json({ token });
   } catch (err) { next(err); }
 });
-app.use('/api/users', loginRouter);
+app.use('/users', loginRouter);
 // Apply authentication and active check for all other routes
 app.use(authenticateToken);
 app.use(requireActive);
 // Mount all other user routes (except /login)
-app.use('/api/users', (req, res, next) => {
+app.use('/users', (req, res, next) => {
   if (req.path === '/login') return next('route');
   return userRoutes(req, res, next);
 });
@@ -47,10 +48,10 @@ describe('User API', () => {
   it('should login with valid credentials', async () => {
     // Create a user first (direct DB insert for test)
     const db = await import('../db.js').then(m => m.getDb());
-    await db.run('INSERT OR IGNORE INTO users (username, password, role, status) VALUES (?, ?, ?, ?)', ['testuser', 'testpass', 'admin', 'active']);
+    await db.run('INSERT OR IGNORE INTO users (username, password, role, status) VALUES (?, ?, ?, ?)', ['testuser@finance.com', 'testpass', 'admin', 'active']);
     const res = await request(app)
-      .post('/api/users/login')
-      .send({ username: 'testuser', password: 'testpass' });
+      .post('/users/login')
+      .send({ email: 'testuser@finance.com', password: 'testpass' });
     expect(res.statusCode).toBe(200);
     expect(res.body.token).toBeDefined();
     token = res.body.token;
@@ -65,7 +66,7 @@ describe('User API', () => {
 
   it('should list users with valid token', async () => {
     const res = await request(app)
-      .get('/api/users')
+      .get('/users')
       .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);

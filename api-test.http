@@ -1,0 +1,86 @@
+### Finance Backend API Test Requests
+# Base URL: http://localhost:3000
+
+### Login to get a JWT token
+POST http://localhost:3000/users/login
+Content-Type: application/json
+
+{
+  "email": "admin@finance.com",
+  "password": "admin123"
+}
+
+### Create a new user (Admin only)
+POST http://localhost:3000/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "analyst2@finance.com",
+  "password": "password123",
+  "role": "ANALYST"
+}
+
+### Get all users (Admin only)
+GET http://localhost:3000/users
+Authorization: Bearer {{token}}
+
+### Update a user role/status (Admin only)
+PATCH http://localhost:3000/users/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "VIEWER",
+  "status": "INACTIVE"
+}
+
+### Delete a user (Admin only)
+DELETE http://localhost:3000/users/2
+Authorization: Bearer {{token}}
+
+### Create a record (Admin only)
+POST http://localhost:3000/records
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "amount": 5000,
+  "type": "INCOME",
+  "category": "Salary",
+  "date": "2026-04-01T10:00:00Z",
+  "notes": "April Salary"
+}
+
+### Get records with filters (Admin / Analyst)
+GET http://localhost:3000/records?type=INCOME&category=Salary&startDate=2026-04-01T00:00:00Z&endDate=2026-04-30T00:00:00Z
+Authorization: Bearer {{token}}
+
+### Update a record (Admin only)
+PUT http://localhost:3000/records/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "amount": 5500,
+  "type": "INCOME",
+  "category": "Salary",
+  "date": "2026-04-01T10:00:00Z",
+  "notes": "Updated Salary"
+}
+
+### Delete a record (Admin only)
+DELETE http://localhost:3000/records/1
+Authorization: Bearer {{token}}
+
+### Get dashboard summary
+GET http://localhost:3000/dashboard/summary
+Authorization: Bearer {{token}}
+
+### Get category totals
+GET http://localhost:3000/dashboard/category-totals
+Authorization: Bearer {{token}}
+
+### Get monthly trends
+GET http://localhost:3000/dashboard/monthly-trends
+Authorization: Bearer {{token}}

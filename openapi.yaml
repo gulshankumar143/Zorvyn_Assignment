@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:3000
 paths:
-  /api/users/login:
+  /users/login:
     post:
       summary: Login and get JWT token
       requestBody:
@@ -14,23 +14,15 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
           description: JWT token
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-  /api/users:
+                $ref: '#/components/schemas/LoginResponse'
+  /users:
     get:
       summary: List users
       security:
@@ -43,22 +35,126 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    username:
-                      type: string
-                    role:
-                      type: string
-                    status:
-                      type: string
-  /api/records:
-    get:
-      summary: List records (with pagination, search)
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Create a new user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /users/{id}:
+    put:
+      summary: Update user details
       security:
         - bearerAuth: []
       parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    patch:
+      summary: Partially update user details
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    delete:
+      summary: Delete a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /records:
+    get:
+      summary: Get records with optional filters
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: startDate
+          schema:
+            type: string
+        - in: query
+          name: endDate
+          schema:
+            type: string
+        - in: query
+          name: search
+          schema:
+            type: string
         - in: query
           name: limit
           schema:
@@ -67,13 +163,9 @@ paths:
           name: offset
           schema:
             type: integer
-        - in: query
-          name: search
-          schema:
-            type: string
       responses:
         '200':
-          description: List of records
+          description: List of filtered records
           content:
             application/json:
               schema:
@@ -82,7 +174,7 @@ paths:
                   records:
                     type: array
                     items:
-                      type: object
+                      $ref: '#/components/schemas/Record'
                   total:
                     type: integer
     post:
@@ -94,24 +186,46 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                amount:
-                  type: number
-                type:
-                  type: string
-                category:
-                  type: string
-                date:
-                  type: string
-                notes:
-                  type: string
+              $ref: '#/components/schemas/CreateRecordRequest'
       responses:
         '201':
           description: Record created
-  /api/records/{id}:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /records/{id}:
+    put:
+      summary: Update a record
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecordRequest'
+      responses:
+        '200':
+          description: Record updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     delete:
-      summary: Soft delete a record
+      summary: Delete a record
       security:
         - bearerAuth: []
       parameters:
@@ -122,10 +236,173 @@ paths:
             type: integer
       responses:
         '200':
-          description: Record soft deleted
+          description: Record deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /dashboard/summary:
+    get:
+      summary: Get overall dashboard summary
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalIncome:
+                    type: number
+                  totalExpense:
+                    type: number
+                  netBalance:
+                    type: number
+                  categoryTotals:
+                    type: array
+                    items:
+                      type: object
+                  recent:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Record'
+                  monthly:
+                    type: array
+                    items:
+                      type: object
+  /dashboard/category-totals:
+    get:
+      summary: Get category totals
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Category totals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categoryTotals:
+                    type: array
+                    items:
+                      type: object
+  /dashboard/monthly-trends:
+    get:
+      summary: Get monthly trend metrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Monthly trends
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  monthlyTrends:
+                    type: array
+                    items:
+                      type: object
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - password
+        - role
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, ANALYST, VIEWER]
+    UpdateUserRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [ADMIN, ANALYST, VIEWER]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+    CreateRecordRequest:
+      type: object
+      required:
+        - amount
+        - type
+        - category
+        - date
+      properties:
+        amount:
+          type: number
+        type:
+          type: string
+          enum: [INCOME, EXPENSE]
+        category:
+          type: string
+        date:
+          type: string
+          format: date-time
+        notes:
+          type: string
+    Record:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        type:
+          type: string
+        category:
+          type: string
+        date:
+          type: string
+        notes:
+          type: string
+        deleted:
+          type: integer

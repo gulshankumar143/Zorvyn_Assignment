@@ -97,10 +97,10 @@ finance-backend/
    ```
 
 ### Demo users created by `add-user.js`
-- `admin` / `admin123` — admin
-- `analyst` / `analyst123` — analyst
-- `viewer` / `viewer123` — viewer
-- `gulshan` / `gullu567` — admin
+- `admin@finance.com` / `admin123` — admin
+- `analyst@finance.com` / `analyst123` — analyst
+- `viewer@finance.com` / `viewer123` — viewer
+- `gulshan@finance.com` / `gullu567` — admin
 
 ## Environment Variables
 The application supports the following optional environment variables:
@@ -122,71 +122,149 @@ npm run dev
 
 The server listens on `http://localhost:3000` by default.
 
+### API Documentation
+Open the Swagger UI in your browser:
+```bash
+http://localhost:3000/api-docs
+```
+
 ## Testing
 Run the Jest test suite:
 ```bash
 npm test
 ```
 
-## API Reference
+## API Documentation & Testing Guide
+This section details how to manually test each endpoint using tools like Postman, cURL, or the provided `api-test.http` file.
 
-### Authentication
-- `POST /api/users/login`
-  - Request body: `{ "username": "...", "password": "..." }`
-  - Returns: `{ message, token }`
-  - Token expiration: 2 hours
+Base URL: `http://localhost:3000`
+Authentication: Almost all endpoints require a JWT token. First hit the Login endpoint, copy the token, and include it in the `Authorization: Bearer <TOKEN>` header for subsequent requests.
 
-### Authorization
-- Send the JWT using the `Authorization` header:
-  - `Authorization: Bearer <token>`
-- Protected routes require a valid token and active user status.
+### 1. Users & Authentication
 
-### Role access matrix
-- `admin` — manage users, create/update/delete records, and read dashboard summary
-- `analyst` — list users, list/create/update records, and read dashboard summary
-- `viewer` — read dashboard summary only
+Login (Get Token)
+- Route: `POST /users/login`
+- Access: Public
+- Body (JSON):
+  ```json
+  {
+    "email": "admin@finance.com",
+    "password": "admin123"
+  }
+  ```
 
-### Users
-- `GET /api/users`
-  - Roles allowed: `admin`, `analyst`
-  - Returns list of users with `id`, `username`, `role`, and `status`
-- `POST /api/users`
-  - Role allowed: `admin`
-  - Request body: `{ "username", "password", "role" }`
-- `PUT /api/users/:id`
-  - Role allowed: `admin`
-  - Request body may include `password`, `role`, `status`
-- `DELETE /api/users/:id`
-  - Role allowed: `admin`
+Create User
+- Route: `POST /users`
+- Access: Admin Only
+- Authorization: `Bearer <TOKEN>`
+- Body (JSON):
+  ```json
+  {
+    "email": "analyst2@finance.com",
+    "password": "password123",
+    "role": "ANALYST"
+  }
+  ```
 
-### Records
-- `GET /api/records`
-  - Roles allowed: `admin`, `analyst`
-  - Query params: `limit`, `offset`, `type`, `category`, `date`, `search`
-  - Returns: `{ records, total }`
-- `POST /api/records`
-  - Role allowed: `admin`
-  - Request body: `{ "amount", "type", "category", "date", "notes" }`
-- `PUT /api/records/:id`
-  - Role allowed: `admin`
-  - Request body: `{ "amount", "type", "category", "date", "notes" }`
-- `DELETE /api/records/:id`
-  - Role allowed: `admin`
-  - Performs a soft delete by setting `deleted = 1`
+Get All Users
+- Route: `GET /users`
+- Access: Admin Only
+- Authorization: `Bearer <TOKEN>`
 
-### Dashboard
-- `GET /api/dashboard/summary`
-  - Roles allowed: `admin`, `analyst`, `viewer`
-  - Returns a summary analytics payload for dashboard use
+Update User Role/Status
+- Route: `PATCH /users/:id`
+- Access: Admin Only
+- Authorization: `Bearer <TOKEN>`
+- Body (JSON) [Optional Fields]:
+  ```json
+  {
+    "role": "VIEWER",
+    "status": "INACTIVE"
+  }
+  ```
+
+Delete User
+- Route: `DELETE /users/:id`
+- Access: Admin Only
+- Authorization: `Bearer <TOKEN>`
+
+### 2. Financial Records
+
+Create Record
+- Route: `POST /records`
+- Access: Admin Only
+- Authorization: `Bearer <TOKEN>`
+- Body (JSON):
+  ```json
+  {
+    "amount": 5000,
+    "type": "INCOME",
+    "category": "Salary",
+    "date": "2026-04-01T10:00:00Z",
+    "notes": "April Salary"
+  }
+  ```
+
+Get Records (with Filters)
+- Route: `GET /records`
+- Example route with filters: `/records?type=INCOME&category=Salary&startDate=2026-04-01T00:00:00Z&endDate=2026-04-30T00:00:00Z`
+- Access: Admin, Analyst
+- Authorization: `Bearer <TOKEN>`
+
+Update Record
+- Route: `PUT /records/:id`
+- Access: Admin Only
+- Authorization: `Bearer <TOKEN>`
+- Body (JSON):
+  ```json
+  {
+    "amount": 5500,
+    "type": "INCOME",
+    "category": "Salary",
+    "date": "2026-04-01T10:00:00Z",
+    "notes": "Updated Salary"
+  }
+  ```
+
+Delete Record
+- Route: `DELETE /records/:id`
+- Access: Admin Only
+- Authorization: `Bearer <TOKEN>`
+
+### 3. Dashboard Summaries
+
+Get Overall Summary
+- Route: `GET /dashboard/summary`
+- Access: Admin, Analyst, Viewer
+- Authorization: `Bearer <TOKEN>`
+- Expected: Returns total income, total expense, net balance, category totals, recent activities, and monthly trends.
+
+Get Category Totals
+- Route: `GET /dashboard/category-totals`
+- Access: Admin, Analyst, Viewer
+- Authorization: `Bearer <TOKEN>`
+- Expected: Returns sum of amounts grouped by category.
+
+Get Monthly Trends
+- Route: `GET /dashboard/monthly-trends`
+- Access: Admin, Analyst, Viewer
+- Authorization: `Bearer <TOKEN>`
+- Expected: Returns metrics grouped by `YYYY-MM` format.
+
+### Swagger UI
+Open the API documentation in your browser:
+```bash
+http://localhost:3000/api-docs
+```
 
 ## Example Requests
 Login and call a protected endpoint:
 ```bash
-curl -X POST http://localhost:3000/api/users/login \
+curl -X POST http://localhost:3000/users/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -d '{"email":"admin@finance.com","password":"admin123"}'
 
-curl http://localhost:3000/api/users \
+curl http://localhost:3000/users \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 

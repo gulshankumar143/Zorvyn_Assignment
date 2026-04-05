@@ -20,18 +20,19 @@ export async function listUsers(req, res, next) {
 export async function createUser(req, res, next) {
   try {
     const db = await getDb();
-    const { username, password, role } = req.body;
+    const { username, email, password, role } = req.body;
+    const userIdentifier = username || email;
     const status = UserStatus.ACTIVE;
 
     await db.run(
       'INSERT INTO users (username, password, role, status) VALUES (?, ?, ?, ?)',
-      [username, password, role, status]
+      [userIdentifier, password, role, status]
     );
 
     res.status(201).json({ message: 'User created' });
   } catch (err) {
     if (err.code === 'SQLITE_CONSTRAINT') {
-      return res.status(409).json({ error: 'Username already exists' });
+      return res.status(409).json({ error: 'Username or email already exists' });
     }
     next(err);
   }

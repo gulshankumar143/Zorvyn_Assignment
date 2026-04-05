@@ -4,13 +4,15 @@ import { getDb } from '../db.js';
 export async function listRecords(req, res, next) {
   try {
     const db = await getDb();
-    // Filtering: type, category, date
-    const { type, category, date, search, limit = 10, offset = 0 } = req.query;
+    // Filtering: type, category, date range, search
+    const { type, category, date, startDate, endDate, search, limit = 10, offset = 0 } = req.query;
     let query = 'SELECT * FROM records WHERE deleted = 0';
     const params = [];
     if (type) { query += ' AND type = ?'; params.push(type); }
     if (category) { query += ' AND category = ?'; params.push(category); }
     if (date) { query += ' AND date = ?'; params.push(date); }
+    if (startDate) { query += ' AND date >= ?'; params.push(startDate); }
+    if (endDate) { query += ' AND date <= ?'; params.push(endDate); }
     if (search) {
       query += ' AND (notes LIKE ? OR category LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
@@ -24,6 +26,8 @@ export async function listRecords(req, res, next) {
     if (type) { countQuery += ' AND type = ?'; countParams.push(type); }
     if (category) { countQuery += ' AND category = ?'; countParams.push(category); }
     if (date) { countQuery += ' AND date = ?'; countParams.push(date); }
+    if (startDate) { countQuery += ' AND date >= ?'; countParams.push(startDate); }
+    if (endDate) { countQuery += ' AND date <= ?'; countParams.push(endDate); }
     if (search) {
       countQuery += ' AND (notes LIKE ? OR category LIKE ?)';
       countParams.push(`%${search}%`, `%${search}%`);

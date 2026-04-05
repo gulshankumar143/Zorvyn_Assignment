@@ -2,10 +2,10 @@
 import { initDb, getDb } from './src/db.js';
 
 const users = [
-  { username: 'admin', password: 'admin123', role: 'admin', status: 'active' },
-  { username: 'analyst', password: 'analyst123', role: 'analyst', status: 'active' },
-  { username: 'viewer', password: 'viewer123', role: 'viewer', status: 'active' },
-  { username: 'gulshan', password: 'gullu567', role: 'admin', status: 'active' },
+  { username: 'admin@finance.com', password: 'admin123', role: 'admin', status: 'active' },
+  { username: 'analyst@finance.com', password: 'analyst123', role: 'analyst', status: 'active' },
+  { username: 'viewer@finance.com', password: 'viewer123', role: 'viewer', status: 'active' },
+  { username: 'gulshan@finance.com', password: 'gullu567', role: 'admin', status: 'active' },
 ];
 
 const run = async () => {

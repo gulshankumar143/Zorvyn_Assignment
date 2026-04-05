@@ -1,5 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import yaml from 'js-yaml';
 
 import { rateLimiter } from './middleware/rateLimit.js';
 import { initDb } from './db.js';
@@ -14,6 +19,12 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const openApiDocument = yaml.load(
+  fs.readFileSync(path.join(__dirname, '..', 'openapi.yaml'), 'utf8')
+);
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -24,6 +35,9 @@ app.use(express.json());
 
 // Rate limiting
 app.use(rateLimiter);
+
+// API documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
 // START SERVER
 
@@ -36,7 +50,7 @@ app.use(rateLimiter);
     // ROUTES
 
     // Public routes (NO authentication required)
-    app.use('/api/users', userRoutes); // includes /login
+    app.use('/users', userRoutes); // includes /login
 
     // Apply authentication middleware AFTER public routes
     app.use(authenticateToken);
@@ -45,8 +59,8 @@ app.use(rateLimiter);
     app.use(requireActive);
 
     // Protected routes
-    app.use('/api/records', recordRoutes);
-    app.use('/api/dashboard', dashboardRoutes);
+    app.use('/records', recordRoutes);
+    app.use('/dashboard', dashboardRoutes);
 
     // Root route
     app.get('/', (req, res) => {

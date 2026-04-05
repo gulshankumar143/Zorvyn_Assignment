@@ -14,11 +14,10 @@ const router = express.Router();
 // 🔐 LOGIN (no auth required)
 router.post('/login', async (req, res, next) => {
   try {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
+    const loginId = username || email;
 
-    console.log("LOGIN BODY:", req.body);
-
-    if (!username || !password) {
+    if (!loginId || !password) {
       return res.status(400).json({ error: 'Missing credentials' });
     }
 
@@ -26,10 +25,8 @@ router.post('/login', async (req, res, next) => {
 
     const user = await db.get(
       'SELECT * FROM users WHERE username = ?',
-      [username]
+      [loginId]
     );
-
-    console.log("USER FROM DB:", user);
 
     if (!user || user.password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -77,6 +74,7 @@ router.post('/', authenticateToken, requireActive, requireRole(Roles.ADMIN), (re
 
 // ✏️ Update user (admin only)
 router.put('/:id', authenticateToken, requireActive, requireRole(Roles.ADMIN), updateUser);
+router.patch('/:id', authenticateToken, requireActive, requireRole(Roles.ADMIN), updateUser);
 
 // ❌ Delete user (admin only)
 router.delete('/:id', authenticateToken, requireActive, requireRole(Roles.ADMIN), deleteUser);
