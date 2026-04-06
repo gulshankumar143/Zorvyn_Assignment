@@ -91,12 +91,14 @@ finance-backend/
    ```bash
    npm install
    ```
-3. Seed the database with demo users:
+3. Start the app. On first launch it will automatically seed demo users if the database is empty:
    ```bash
-   node add-user.js
+   npm start
    ```
 
-### Demo users created by `add-user.js`
+> You can still run `node add-user.js` manually if you want to add the demo users to an existing database.
+
+### Demo users created automatically on first start
 - `admin@finance.com` / `admin123` — admin
 - `analyst@finance.com` / `analyst123` — analyst
 - `viewer@finance.com` / `viewer123` — viewer
