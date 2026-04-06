@@ -13,17 +13,17 @@ const run = async () => {
   const db = getDb();
   for (const user of users) {
     try {
-      await db.run(
-        'INSERT INTO users (username, password, role, status) VALUES (?, ?, ?, ?)',
+      const result = db.run(
+        'INSERT OR IGNORE INTO users (username, password, role, status) VALUES (?, ?, ?, ?)',
         [user.username, user.password, user.role, user.status]
       );
-      console.log('User created:', user.username);
-    } catch (err) {
-      if (err.code === 'SQLITE_CONSTRAINT') {
-        console.log('User already exists:', user.username);
+      if (result.changes > 0) {
+        console.log('User created:', user.username);
       } else {
-        console.error('Error inserting user:', err);
+        console.log('User already exists:', user.username);
       }
+    } catch (err) {
+      console.error('Error inserting user:', err);
     }
   }
   process.exit();

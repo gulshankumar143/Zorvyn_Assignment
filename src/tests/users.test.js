@@ -59,7 +59,7 @@ describe('User API', () => {
 
   it('should reject invalid login', async () => {
     const res = await request(app)
-      .post('/api/users/login')
+      .post('/users/login')
       .send({ username: 'testuser', password: 'wrongpass' });
     expect(res.statusCode).toBe(401);
   });

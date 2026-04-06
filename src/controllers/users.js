@@ -31,7 +31,7 @@ export async function createUser(req, res, next) {
 
     res.status(201).json({ message: 'User created' });
   } catch (err) {
-    if (err.code === 'SQLITE_CONSTRAINT') {
+    if (err.code && err.code.startsWith('SQLITE_CONSTRAINT')) {
       return res.status(409).json({ error: 'Username or email already exists' });
     }
     next(err);

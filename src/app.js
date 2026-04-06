@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'js-yaml';
+import cors from 'cors';
 
 import { rateLimiter } from './middleware/rateLimit.js';
 import { initDb } from './db.js';
@@ -29,6 +30,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // GLOBAL MIDDLEWARE
+
+// Enable CORS for remote clients and Swagger UI
+app.use(cors());
+app.options('*', cors());
 
 // Parse JSON request body
 app.use(express.json());

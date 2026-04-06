@@ -15,11 +15,22 @@ export function initDb({ test = false } = {}) {
   if (db) return db;
 
   db = new Database(dbFile);
+  db.run = function (sql, params = []) {
+    return this.prepare(sql).run(...(Array.isArray(params) ? params : [params]));
+  };
+  db.get = function (sql, params = []) {
+    return this.prepare(sql).get(...(Array.isArray(params) ? params : [params]));
+  };
+  db.all = function (sql, params = []) {
+    return this.prepare(sql).all(...(Array.isArray(params) ? params : [params]));
+  };
 
   // Drop tables in test mode
   if (test) {
-    db.exec('DROP TABLE IF EXISTS users');
+    db.exec('PRAGMA foreign_keys = OFF');
     db.exec('DROP TABLE IF EXISTS records');
+    db.exec('DROP TABLE IF EXISTS users');
+    db.exec('PRAGMA foreign_keys = ON');
   }
 
   // User table
